@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// Change line 1 of src/App.tsx to this:
+import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { Announcements } from "./pages/Announcements";
 import { Events } from "./pages/Events";

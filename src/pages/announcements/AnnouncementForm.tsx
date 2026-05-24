@@ -3,7 +3,9 @@ import type { Announcement } from "../../types";
 
 interface AnnouncementFormProps {
   announcement?: Announcement;
-  onSave: (data: Omit<Announcement, "id" | "date_published">) => void;
+  onSave: (
+    data: Omit<Announcement, "id" | "date_published" | "created_at">,
+  ) => void;
   onCancel: () => void;
 }
 
