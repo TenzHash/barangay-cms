@@ -1,4 +1,3 @@
-// Change line 1 of src/App.tsx to this:
 import { useState, useEffect } from "react";
 import { Dashboard } from "./pages/Dashboard";
 import { Announcements } from "./pages/Announcements";
@@ -13,26 +12,53 @@ import { supabase } from "./lib/supabaseClient";
 import type {
   BarangayInfo,
   Announcement,
-  Event,
+  Event as BarangayEvent,
   Official,
   BarangayService,
   UserRole,
 } from "./types";
 
+// Explicit custom interface for the experimental PWA installation banner tracking to keep ESLint green
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[];
+  readonly userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
+// Strict mapping for allowed menu navigation keys
+type TabId =
+  | "dashboard"
+  | "announcements"
+  | "events"
+  | "officials"
+  | "services"
+  | "preview"
+  | "settings";
+
+interface MenuItem {
+  id: TabId;
+  label: string;
+  allowedRoles?: UserRole[];
+}
+
 export default function App() {
   const [session, setSession] = useState<any>(null);
   const [userRole, setUserRole] = useState<UserRole>("SK_Chair");
-  const [currentTab, setCurrentTab] = useState<string>("dashboard");
+  const [currentTab, setCurrentTab] = useState<TabId>("dashboard");
   const [loading, setLoading] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
   // PWA Native Installation Engine States
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallBtn, setShowInstallBtn] = useState<boolean>(false);
 
   const [barangayInfo, setBarangayInfo] = useState<BarangayInfo | null>(null);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<BarangayEvent[]>([]);
   const [officials, setOfficials] = useState<Official[]>([]);
   const [services, setServices] = useState<BarangayService[]>([]);
 
@@ -105,11 +131,13 @@ export default function App() {
     });
 
     // 2. Capture Browser Installation Token Prompts
-    window.addEventListener("beforeinstallprompt", (e) => {
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallBtn(true);
-    });
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     window.addEventListener("appinstalled", () => {
       setDeferredPrompt(null);
@@ -119,12 +147,18 @@ export default function App() {
       );
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+    };
   }, []);
 
   const handleInstallAppClick = async () => {
     if (!deferredPrompt) return;
-    deferredPrompt.prompt();
+    await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
       setDeferredPrompt(null);
@@ -154,7 +188,7 @@ export default function App() {
     mission: "Define via Settings",
   };
 
-  const menuItems = [
+  const menuItems: MenuItem[] = [
     { id: "dashboard", label: "Overview Dashboard" },
     { id: "announcements", label: "Announcements Feed" },
     { id: "events", label: "Events & Schedules" },
@@ -176,12 +210,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative select-none antialiased">
-      {/* SECURED APPLICATION STATUS BAR HEADER */}
-      <header className="bg-gov-navy text-white px-4 h-16 sticky top-0 z-40 flex items-center justify-between border-b border-white/5 shadow-md shrink-0">
+      {/* SECURED APPLICATION STATUS BAR HEADER (Locked to z-40 view layer) */}
+      <header className="bg-slate-900 text-white px-4 h-16 sticky top-0 z-40 flex items-center justify-between border-b border-white/5 shadow-md shrink-0 w-full">
         <div className="flex items-center gap-2.5 truncate">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="w-9 h-9 flex items-center justify-center bg-white/10 rounded-xl border border-white/5 text-white active:scale-90 transition-all cursor-pointer outline-none font-bold"
+            className="w-9 h-9 flex items-center justify-center bg-white/10 rounded-xl border border-white/5 text-white active:scale-90 transition-all cursor-pointer outline-none font-bold z-50"
           >
             {mobileMenuOpen ? "✕" : "☰"}
           </button>
@@ -200,7 +234,7 @@ export default function App() {
           {showInstallBtn && (
             <button
               onClick={handleInstallAppClick}
-              className="text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-white px-3 py-2 rounded-xl active:scale-95 transition-all cursor-pointer shadow-md"
+              className="text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-white px-3 py-2 rounded-xl active:scale-95 transition-all cursor-pointer shadow-md border-none outline-none"
             >
               Install CMS
             </button>
@@ -210,21 +244,21 @@ export default function App() {
               if (confirm("Sign out of management terminal session?"))
                 await supabase.auth.signOut();
             }}
-            className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-slate-300 border border-white/5 px-3 py-2 rounded-xl active:scale-95 transition-all cursor-pointer"
+            className="text-[9px] font-bold uppercase tracking-wider bg-white/10 text-slate-300 border border-white/5 px-3 py-2 rounded-xl active:scale-95 transition-all cursor-pointer outline-none"
           >
             Exit
           </button>
         </div>
       </header>
 
-      {/* DROPDOWN SYSTEM DRAWER PANEL INTERACTION ROW */}
+      {/* DROPDOWN SYSTEM DRAWER PANEL INTERACTION ROW (Emanates from z-50 depth context) */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-16 bg-slate-950/60 backdrop-blur-xs z-30 transition-all"
+          className="fixed inset-0 top-16 bg-slate-950/60 backdrop-blur-xs z-50 transition-all"
           onClick={() => setMobileMenuOpen(false)}
         >
           <nav
-            className="bg-gov-navy text-white w-64 h-full p-4 space-y-1 shadow-2xl border-r border-white/5 flex flex-col justify-between pb-8"
+            className="bg-slate-900 text-white w-64 h-full p-4 space-y-1 shadow-2xl border-r border-white/5 flex flex-col justify-between pb-8"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-1">
@@ -240,7 +274,7 @@ export default function App() {
                       setCurrentTab(item.id);
                       setMobileMenuOpen(false);
                     }}
-                    className={`w-full flex items-center px-4 py-3 rounded-xl text-xs font-bold text-left transition-all cursor-pointer ${
+                    className={`w-full flex items-center px-4 py-3 rounded-xl text-xs font-bold text-left transition-all cursor-pointer border-none outline-none ${
                       isActive
                         ? "bg-white/10 text-white border-l-4 border-slate-200 pl-3 shadow-inner"
                         : "text-slate-400 hover:bg-white/5 hover:text-slate-200"
@@ -259,8 +293,8 @@ export default function App() {
         </div>
       )}
 
-      {/* COMPONENT DESK GRID SURFACE */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-5 min-h-0">
+      {/* COMPONENT DESK GRID SURFACE (Overflow properties pulled so header stickiness handles correctly) */}
+      <main className="flex-1 p-4 space-y-5 min-h-0 z-10 w-full">
         {(() => {
           switch (currentTab) {
             case "dashboard":
