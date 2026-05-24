@@ -210,7 +210,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative select-none antialiased">
-      {/* SECURED APPLICATION STATUS BAR HEADER (Locked to z-40 view layer) */}
+      {/* SECURED APPLICATION STATUS BAR HEADER */}
       <header className="bg-slate-900 text-white px-4 h-16 sticky top-0 z-40 flex items-center justify-between border-b border-white/5 shadow-md shrink-0 w-full">
         <div className="flex items-center gap-2.5 truncate">
           <button
@@ -251,14 +251,14 @@ export default function App() {
         </div>
       </header>
 
-      {/* DROPDOWN SYSTEM DRAWER PANEL INTERACTION ROW (Emanates from z-50 depth context) */}
+      {/* DROPDOWN SYSTEM DRAWER PANEL INTERACTION ROW (Forced over absolute page maximums via z-[9998] and z-[9999]) */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-16 bg-slate-950/60 backdrop-blur-xs z-50 transition-all"
+          className="fixed inset-0 top-16 bg-slate-950/60 backdrop-blur-xs z-[9998] transition-all"
           onClick={() => setMobileMenuOpen(false)}
         >
           <nav
-            className="bg-slate-900 text-white w-64 h-full p-4 space-y-1 shadow-2xl border-r border-white/5 flex flex-col justify-between pb-8"
+            className="bg-slate-900 text-white w-64 h-full p-4 space-y-1 shadow-2xl border-r border-white/5 flex flex-col justify-between pb-8 z-[9999]"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-1">
@@ -293,7 +293,7 @@ export default function App() {
         </div>
       )}
 
-      {/* COMPONENT DESK GRID SURFACE (Overflow properties pulled so header stickiness handles correctly) */}
+      {/* COMPONENT DESK GRID SURFACE */}
       <main className="flex-1 p-4 space-y-5 min-h-0 z-10 w-full">
         {(() => {
           switch (currentTab) {
