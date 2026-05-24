@@ -206,7 +206,7 @@ export default function App() {
     { id: "settings", label: "Portal Settings", allowedRoles: ["Admin"] },
   ].filter(
     (item) => !item.allowedRoles || item.allowedRoles.includes(userRole),
-  );
+  ) as MenuItem[]; // <-- ADD "as MenuItem[]" HERE
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative select-none antialiased">
