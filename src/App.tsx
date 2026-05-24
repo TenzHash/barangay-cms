@@ -293,8 +293,10 @@ export default function App() {
         </div>
       )}
 
-      {/* COMPONENT DESK GRID SURFACE */}
-      <main className="flex-1 p-4 space-y-5 min-h-0 z-10 w-full">
+      {/* COMPONENT DESK GRID SURFACE (Hides content area completely when the mobile menu is open to prevent sub-page element bleed) */}
+      <main
+        className={`flex-1 p-4 space-y-5 min-h-0 z-10 w-full ${mobileMenuOpen ? "hidden" : "block"}`}
+      >
         {(() => {
           switch (currentTab) {
             case "dashboard":
