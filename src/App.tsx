@@ -206,7 +206,7 @@ export default function App() {
     { id: "settings", label: "Portal Settings", allowedRoles: ["Admin"] },
   ].filter(
     (item) => !item.allowedRoles || item.allowedRoles.includes(userRole),
-  ) as MenuItem[]; // <-- ADD "as MenuItem[]" HERE
+  ) as MenuItem[];
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative select-none antialiased">
@@ -251,7 +251,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* DROPDOWN SYSTEM DRAWER PANEL INTERACTION ROW (Forced over absolute page maximums via z-[9998] and z-[9999]) */}
+      {/* DROPDOWN SYSTEM DRAWER PANEL INTERACTION ROW */}
       {mobileMenuOpen && (
         <div
           className="fixed inset-0 top-16 bg-slate-950/60 backdrop-blur-xs z-[9998] transition-all"
@@ -305,7 +305,7 @@ export default function App() {
                   events={events}
                   officials={officials}
                   services={services}
-                  setActiveTab={setCurrentTab}
+                  setActiveTab={setCurrentTab as (tab: string) => void}
                 />
               );
             case "announcements":
