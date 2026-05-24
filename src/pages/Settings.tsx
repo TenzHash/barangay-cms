@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { PageHeader } from "../components/shared/PageHeader";
 import { supabase } from "../lib/supabaseClient";
 import type { BarangayInfo } from "../types";
@@ -9,177 +9,164 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ info, onRefresh }) => {
-  const [name, setName] = useState(info.name);
-  const [municipality, setMunicipality] = useState(info.municipality);
-  const [province, setProvince] = useState(info.province);
-  const [contactNumber, setContactNumber] = useState(
-    info.contact_number || info.contactNumber || "",
+  const [name, setName] = useState(info?.name || "");
+  const [municipality, setMunicipality] = useState(info?.municipality || "");
+  const [province, setProvince] = useState(info?.province || "");
+  const [contact_number, setContactNumber] = useState(
+    info?.contact_number || "",
   );
-  const [email, setEmail] = useState(info.email);
-  const [vision, setVision] = useState(info.vision);
-  const [mission, setMission] = useState(info.mission);
-  const [saved, setSaved] = useState(false);
+  const [email, setEmail] = useState(info?.email || "");
+  const [vision, setVision] = useState(info?.vision || "");
+  const [mission, setMission] = useState(info?.mission || "");
+  const [saving, setSaving] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleUpdateSettings = async (e: React.FormEvent) => {
     e.preventDefault();
+    try {
+      setSaving(true);
+      const payload = {
+        name,
+        municipality,
+        province,
+        contact_number,
+        email,
+        vision,
+        mission,
+      };
 
-    const settingsPayload = {
-      name,
-      municipality,
-      province,
-      contact_number: contactNumber,
-      email,
-      vision,
-      mission,
-    };
+      if (info?.id) {
+        const { error } = await supabase
+          .from("barangay_info")
+          .update(payload)
+          .eq("id", info.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("barangay_info")
+          .insert([payload]);
+        if (error) throw error;
+      }
 
-    if (info.id) {
-      // Row exists -> Update record values
-      await supabase
-        .from("barangay_info")
-        .update(settingsPayload)
-        .eq("id", info.id);
-    } else {
-      // Base table configuration is empty -> Insert original record boundary
-      await supabase.from("barangay_info").insert([settingsPayload]);
+      await onRefresh();
+      alert("System primary parameters initialized successfully.");
+    } catch (err: any) {
+      alert(`Configuration update blocked: ${err.message}`);
+    } finally {
+      setSaving(false);
     }
-
-    await onRefresh();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn max-w-4xl text-xs font-semibold text-slate-500">
       <PageHeader
-        title="LGU Identity Settings"
-        description="Configure localized geographic parameters, official hotlines, and long-term organizational declarations."
+        title="Portal Settings"
+        description="Configure core structural properties, geographical naming, hotlines, and mandates."
       />
+
       <form
-        onSubmit={handleSubmit}
-        className="bg-white border rounded-xl p-6 shadow-sm space-y-6 text-xs"
+        onSubmit={handleUpdateSettings}
+        className="bg-white rounded-2xl border border-slate-200/80 p-6 space-y-5 shadow-sm"
       >
-        {saved && (
-          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg font-medium">
-            Local workspace parameters updated successfully. Network tables
-            synchronized.
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="sm:col-span-2">
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              Barangay Name Assignment
+            </label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white"
+              required
+            />
           </div>
-        )}
-
-        <div className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-gov-navy border-b pb-2">
-            Geographical Hierarchy Nodes
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Barangay Name
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue font-semibold"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Municipality
-              </label>
-              <input
-                type="text"
-                value={municipality}
-                onChange={(e) => setMunicipality(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Territory Province
-              </label>
-              <input
-                type="text"
-                value={province}
-                onChange={(e) => setProvince(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue"
-                required
-              />
-            </div>
+          <div>
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              Hotline Terminal
+            </label>
+            <input
+              type="text"
+              value={contact_number}
+              onChange={(e) => setContactNumber(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white font-mono"
+              required
+            />
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-gov-navy border-b pb-2">
-            Public Channels Ingress
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Emergency Hotline Number
-              </label>
-              <input
-                type="text"
-                value={contactNumber}
-                onChange={(e) => setContactNumber(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue font-mono"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Institutional Contact Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue"
-                required
-              />
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              City / Municipality
+            </label>
+            <input
+              type="text"
+              value={municipality}
+              onChange={(e) => setMunicipality(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              Province State
+            </label>
+            <input
+              type="text"
+              value={province}
+              onChange={(e) => setProvince(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white"
+              required
+            />
+          </div>
+          <div>
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              Official Contact Email
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white"
+              required
+            />
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-gov-navy border-b pb-2">
-            System Declarations
-          </h3>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Vision Charter
-              </label>
-              <textarea
-                rows={2}
-                value={vision}
-                onChange={(e) => setVision(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue resize-none leading-relaxed"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">
-                Mission Strategy Blueprint
-              </label>
-              <textarea
-                rows={2}
-                value={mission}
-                onChange={(e) => setMission(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:border-gov-blue resize-none leading-relaxed"
-                required
-              />
-            </div>
+        <div className="space-y-4 pt-2 border-t">
+          <div>
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              Community Vision Framework Statement
+            </label>
+            <textarea
+              rows={3}
+              value={vision}
+              onChange={(e) => setVision(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white resize-none italic font-light"
+              required
+            />
+          </div>
+          <div>
+            <label className="block mb-1.5 uppercase text-[10px] font-black tracking-wide">
+              Community Mission Statement
+            </label>
+            <textarea
+              rows={3}
+              value={mission}
+              onChange={(e) => setMission(e.target.value)}
+              className="w-full px-4 py-3 bg-slate-50 border rounded-xl text-gov-darkText focus:outline-none focus:bg-white resize-none italic font-light"
+              required
+            />
           </div>
         </div>
 
-        <div className="flex justify-end pt-3 border-t">
+        <div className="flex justify-end pt-4 border-t">
           <button
             type="submit"
-            className="px-5 py-2.5 font-semibold text-white bg-gov-blue hover:bg-gov-navy rounded-lg shadow-sm"
+            disabled={saving}
+            className="px-5 py-3 text-xs font-bold text-white bg-gov-blue hover:bg-gov-navy rounded-xl shadow-md cursor-pointer disabled:bg-slate-300"
           >
-            Commit System Variables
+            {saving ? "Syncing Tables..." : "Save Configuration Changes"}
           </button>
         </div>
       </form>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { PageHeader } from "../components/shared/PageHeader";
 import { EmptyState } from "../components/shared/EmptyState";
 import { EventForm } from "./events/EventForm";
@@ -17,28 +17,29 @@ export const Events: React.FC<EventsProps> = ({ items, onRefresh }) => {
   const selectedItem = items.find((i) => i.id === currentId);
 
   const handleSave = async (formData: any) => {
-    // Map internal variable naming convention cleanly to your SQL database snake_case columns
-    const databasePayload = {
-      title: formData.title,
-      description: formData.description,
-      event_date: formData.date,
-      event_time: formData.time,
-      venue: formData.venue,
-      status: formData.status,
-    };
-
-    if (currentId) {
-      await supabase.from("events").update(databasePayload).eq("id", currentId);
-    } else {
-      await supabase.from("events").insert([databasePayload]);
+    try {
+      if (currentId) {
+        const { error } = await supabase
+          .from("events")
+          .update(formData)
+          .eq("id", currentId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("events").insert([formData]);
+        if (error) throw error;
+      }
+      await onRefresh();
+      closeForm();
+    } catch (err: any) {
+      alert(`Database Error: ${err.message}`);
     }
-    await onRefresh();
-    closeForm();
   };
 
   const handleDelete = async (id: string) => {
     if (
-      confirm("Delete this event node permanently from the public calendar?")
+      confirm(
+        "Delete this scheduled event node permanently from the cloud registry?",
+      )
     ) {
       await supabase.from("events").delete().eq("id", id);
       await onRefresh();
@@ -51,84 +52,96 @@ export const Events: React.FC<EventsProps> = ({ items, onRefresh }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {!isEditing ? (
         <>
           <PageHeader
-            title="Operational Calendars & Events Matrix"
-            description="Organize healthcare caravans, youth bootcamps, and zone-specific operations."
+            title="Events & Schedules"
+            description="Manage community assemblies, health caravans, and cultural programs."
             action={
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-gov-blue hover:bg-gov-navy rounded-lg shadow-sm"
+                className="px-4 py-2.5 text-xs font-semibold text-white bg-gov-blue hover:bg-gov-navy rounded-xl shadow-sm cursor-pointer transition-all"
               >
-                Schedule Event Object
+                Schedule Event
               </button>
             }
           />
+
           {items.length === 0 ? (
             <EmptyState
-              title="Calendar Framework Empty"
-              description="Deploy an upcoming event entry to activate citizen viewports."
-              actionLabel="Schedule Event"
+              title="No Events Scheduled"
+              description="Log an upcoming activity node to populate citizen portal calendar layers."
+              actionLabel="Schedule First Event"
               onAction={() => setIsEditing(true)}
             />
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {items.map((evt) => (
-                <div
-                  key={evt.id}
-                  className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between space-y-4"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border">
-                        {evt.status}
-                      </span>
-                      <div className="text-[10px] font-mono text-slate-400">
-                        {evt.event_date}
-                      </div>
-                    </div>
-                    <h4 className="text-xs font-bold text-gov-darkText leading-tight">
-                      {evt.title}
-                    </h4>
-                    <p className="text-[11px] text-slate-500 line-clamp-2">
-                      {evt.description}
-                    </p>
-                  </div>
-                  <div className="pt-3 border-t text-[11px] text-slate-500 space-y-0.5">
-                    <div>
-                      Venue:{" "}
-                      <span className="font-semibold text-gov-darkText">
-                        {evt.venue}
-                      </span>
-                    </div>
-                    {evt.event_time && (
-                      <div>
-                        Time:{" "}
-                        <span className="font-mono">{evt.event_time}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex justify-end gap-3 text-xs font-medium pt-1">
-                    <button
-                      onClick={() => {
-                        setCurrentId(evt.id);
-                        setIsEditing(true);
-                      }}
-                      className="text-gov-blue hover:underline"
-                    >
-                      Modify
-                    </button>
-                    <button
-                      onClick={() => handleDelete(evt.id)}
-                      className="text-rose-600 hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <th className="px-6 py-4">Event Context</th>
+                      <th className="px-6 py-4">Schedules & Venues</th>
+                      <th className="px-6 py-4">Lifecycle State</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {items.map((evt) => (
+                      <tr
+                        key={evt.id}
+                        className="hover:bg-slate-50/40 transition-colors duration-150"
+                      >
+                        <td className="px-6 py-4.5 max-w-xs truncate">
+                          <div className="font-semibold text-gov-darkText truncate">
+                            {evt.title}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-normal mt-0.5 truncate">
+                            {evt.description || "No descriptive summary."}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4.5">
+                          <div className="font-mono text-slate-700 font-bold">
+                            {evt.event_date}
+                          </div>
+                          <div className="text-[11px] text-slate-400 font-normal mt-0.5">
+                            {evt.venue} @ {evt.event_time}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4.5">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
+                              evt.status === "Upcoming"
+                                ? "bg-blue-50 text-blue-700 border-blue-100"
+                                : "bg-emerald-50 text-emerald-700 border-emerald-100"
+                            }`}
+                          >
+                            {evt.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4.5 text-right font-semibold space-x-4 whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              setCurrentId(evt.id);
+                              setIsEditing(true);
+                            }}
+                            className="text-gov-blue hover:text-gov-navy transition-colors cursor-pointer hover:underline"
+                          >
+                            Configure
+                          </button>
+                          <button
+                            onClick={() => handleDelete(evt.id)}
+                            className="text-rose-600 hover:text-rose-800 transition-colors cursor-pointer hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </>
@@ -137,9 +150,13 @@ export const Events: React.FC<EventsProps> = ({ items, onRefresh }) => {
           event={
             selectedItem
               ? {
-                  ...selectedItem,
-                  date: selectedItem.event_date,
-                  time: selectedItem.event_time,
+                  id: selectedItem.id,
+                  title: selectedItem.title,
+                  description: selectedItem.description,
+                  event_date: selectedItem.event_date,
+                  event_time: selectedItem.event_time,
+                  venue: selectedItem.venue,
+                  status: selectedItem.status,
                 }
               : undefined
           }

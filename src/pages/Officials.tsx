@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { PageHeader } from "../components/shared/PageHeader";
 import { EmptyState } from "../components/shared/EmptyState";
 import { OfficialForm } from "./officials/OfficialForm";
@@ -17,32 +17,26 @@ export const Officials: React.FC<OfficialsProps> = ({ items, onRefresh }) => {
   const selectedItem = items.find((i) => i.id === currentId);
 
   const handleSave = async (formData: any) => {
-    const databasePayload = {
-      name: formData.name,
-      position: formData.position,
-      term_start: formData.termStart,
-      term_end: formData.termEnd,
-      status: formData.status,
-    };
-
-    if (currentId) {
-      await supabase
-        .from("officials")
-        .update(databasePayload)
-        .eq("id", currentId);
-    } else {
-      await supabase.from("officials").insert([databasePayload]);
+    try {
+      if (currentId) {
+        const { error } = await supabase
+          .from("officials")
+          .update(formData)
+          .eq("id", currentId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("officials").insert([formData]);
+        if (error) throw error;
+      }
+      await onRefresh();
+      closeForm();
+    } catch (err: any) {
+      alert(`Database Error: ${err.message}`);
     }
-    await onRefresh();
-    closeForm();
   };
 
   const handleDelete = async (id: string) => {
-    if (
-      confirm(
-        "Eradicate official administration profile entry from your public registry?",
-      )
-    ) {
+    if (confirm("Remove this official from active records permanently?")) {
       await supabase.from("officials").delete().eq("id", id);
       await onRefresh();
     }
@@ -54,72 +48,80 @@ export const Officials: React.FC<OfficialsProps> = ({ items, onRefresh }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fadeIn">
       {!isEditing ? (
         <>
           <PageHeader
-            title="Sangguniang Barangay Registry Directory"
-            description="Configure details of local officials, portfolios, mandates, and active execution status ranges."
+            title="Officials Directory"
+            description="Maintain active civil listings, portfolios, and terms of service for the council."
             action={
               <button
                 onClick={() => setIsEditing(true)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-gov-blue hover:bg-gov-navy rounded-lg shadow-sm"
+                className="px-4 py-2.5 text-xs font-semibold text-white bg-gov-blue hover:bg-gov-navy rounded-xl shadow-sm cursor-pointer transition-all"
               >
-                Enlist Official Asset
+                Register Official
               </button>
             }
           />
+
           {items.length === 0 ? (
             <EmptyState
-              title="Official Ledger Empty"
-              description="Populate official entity nodes to structure standard civic organizational hierarchies."
-              actionLabel="Enlist Official"
+              title="Roster Record Empty"
+              description="Register council personnel to build accountability across public displays."
+              actionLabel="Add Member Node"
               onAction={() => setIsEditing(true)}
             />
           ) : (
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50/70 border-b text-[10px] font-bold text-slate-500 uppercase">
-                    <th className="px-6 py-3">Official Legal Identity</th>
-                    <th className="px-6 py-3">Position Category</th>
-                    <th className="px-6 py-3">Mandated Term Scope</th>
-                    <th className="px-6 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {items.map((off) => (
-                    <tr key={off.id} className="hover:bg-slate-50/50">
-                      <td className="px-6 py-4 font-semibold text-gov-darkText">
-                        {off.name}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600">
-                        {off.position}
-                      </td>
-                      <td className="px-6 py-4 text-slate-400 font-mono">
-                        {off.term_start} - {off.term_end}
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-3">
-                        <button
-                          onClick={() => {
-                            setCurrentId(off.id);
-                            setIsEditing(true);
-                          }}
-                          className="text-gov-blue hover:underline"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(off.id)}
-                          className="text-rose-600 hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </td>
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.03)] overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-slate-50/70 border-b border-slate-200/80 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <th className="px-6 py-4">Full Legal Name</th>
+                      <th className="px-6 py-4">Portfolio / Position</th>
+                      <th className="px-6 py-4">Term Mandate</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {items.map((off) => (
+                      <tr
+                        key={off.id}
+                        className="hover:bg-slate-50/40 transition-colors duration-150"
+                      >
+                        <td className="px-6 py-4.5 font-bold text-gov-darkText">
+                          {off.name}
+                        </td>
+                        <td className="px-6 py-4.5">
+                          <span className="bg-slate-100 text-gov-blue text-[10px] font-bold px-2.5 py-1 rounded-lg border border-slate-200">
+                            {off.position}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4.5 font-mono text-slate-500">
+                          {off.term_start} — {off.term_end}
+                        </td>
+                        <td className="px-6 py-4.5 text-right font-semibold space-x-4 whitespace-nowrap">
+                          <button
+                            onClick={() => {
+                              setCurrentId(off.id);
+                              setIsEditing(true);
+                            }}
+                            className="text-gov-blue hover:text-gov-navy transition-colors cursor-pointer hover:underline"
+                          >
+                            Configure
+                          </button>
+                          <button
+                            onClick={() => handleDelete(off.id)}
+                            className="text-rose-600 hover:text-rose-800 transition-colors cursor-pointer hover:underline"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </>
@@ -128,9 +130,12 @@ export const Officials: React.FC<OfficialsProps> = ({ items, onRefresh }) => {
           official={
             selectedItem
               ? {
-                  ...selectedItem,
-                  termStart: selectedItem.term_start,
-                  termEnd: selectedItem.term_end,
+                  id: selectedItem.id,
+                  name: selectedItem.name,
+                  position: selectedItem.position,
+                  term_start: selectedItem.term_start,
+                  term_end: selectedItem.term_end,
+                  status: selectedItem.status,
                 }
               : undefined
           }
