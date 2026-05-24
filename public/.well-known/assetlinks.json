@@ -1,0 +1,27 @@
+[
+
+  {
+
+    "relation": [
+
+      "delegate_permission/common.handle_all_urls"
+
+    ],
+
+    "target": {
+
+      "namespace": "android_app",
+
+      "package_name": "com.barangay17.cms.terminal",
+
+      "sha256_cert_fingerprints": [
+
+        "C5:FE:2E:B2:BB:E0:15:80:39:4D:02:FD:93:90:FB:65:DC:84:86:32:4E:25:74:AD:EE:C8:C7:5A:F0:7F:7E:81"
+
+      ]
+
+    }
+
+  }
+
+]
