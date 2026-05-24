@@ -1,0 +1,23 @@
+{
+  "short_name": "Brgy17CMS",
+  "name": "Barangay 17 Mobile Administrative Portal",
+  "description": "Secure mobile workspace management engine for Barangay 17, Legazpi City.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#091e36",
+  "theme_color": "#091e36",
+  "display": "standalone",
+  "orientation": "portrait-primary"
+}

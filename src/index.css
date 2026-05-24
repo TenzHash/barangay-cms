@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gov-navy: #091e36;
+  --color-gov-blue: #0f3a60;
+  --color-gov-accent: #b0c4de;
+  --color-gov-light: #f4f7fa;
+  --color-gov-darkText: #0f172a;
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+body {
+  @apply bg-slate-50/60 text-slate-900 antialiased font-sans;
+}
+
+/* Premium Component Elevation Shading */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  @apply border border-slate-200/60 shadow-[0_4px_18px_-4px_rgba(15,23,42,0.04)];
+}
+
+/* Micro Scrollbar Treatments */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300/80 rounded-full hover:bg-slate-400;
+}
