@@ -1,19 +1,18 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx}", // <-- Add this explicitly
+    "./src/components/**/*.{js,ts,jsx,tsx}", // <-- Add this explicitly
+  ],
   theme: {
     extend: {
       colors: {
-        gov: {
-          navy: "#0b2545",
-          blue: "#134074",
-          accent: "#8da9c4",
-          light: "#eef4f8",
-          darkText: "#1c2541",
-        },
-      },
-      fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        "gov-navy": "#091e36",
+        "gov-blue": "#0f3a60",
+        "gov-accent": "#b0c4de",
+        "gov-darkText": "#0f172a",
       },
     },
   },
