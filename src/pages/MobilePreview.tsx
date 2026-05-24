@@ -258,7 +258,7 @@ export const MobilePreview: React.FC<MobilePreviewProps> = ({
                       Hotline:{" "}
                       <span className="font-mono text-slate-600 font-bold">
                         {info?.contact_number ||
-                          info?.contactNumber ||
+                          info?.contact_number ||
                           "(044) 123-4567"}
                       </span>
                     </div>

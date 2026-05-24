@@ -14,108 +14,106 @@ export const ServiceForm: React.FC<ServiceFormProps> = ({
 }) => {
   const [name, setName] = useState(service?.name || "");
   const [description, setDescription] = useState(service?.description || "");
-  const [reqs, setReqs] = useState(service?.requirements.join("\n") || "");
-  const [processingTime, setProcessingTime] = useState(
-    service?.processingTime || "",
-  );
   const [fees, setFees] = useState(service?.fees || "Free");
+  const [processing_time, setProcessingTime] = useState(
+    service?.processing_time || "",
+  );
+  const [requirementsInput, setRequirementsInput] = useState(
+    service?.requirements?.join(", ") || "",
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !processingTime.trim()) return;
-    const requirements = reqs
-      .split("\n")
+    if (!name.trim()) return;
+
+    const requirements = requirementsInput
+      .split(",")
       .map((r) => r.trim())
       .filter((r) => r.length > 0);
-    onSave({ name, description, requirements, processingTime, fees });
+
+    onSave({ name, description, requirements, processing_time, fees });
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5"
+      className="bg-white rounded-2xl border p-6 space-y-4 max-w-xl text-xs font-semibold text-slate-500"
     >
-      <h3 className="text-sm font-bold uppercase tracking-wider text-gov-navy border-b pb-3">
-        {service
-          ? "Configure Document Parameters"
-          : "Deploy Civil Service Template"}
+      <h3 className="text-sm font-bold text-gov-darkText">
+        Configure Clearance Service Protocol
       </h3>
+
       <div>
-        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-          Service/Document Title
-        </label>
+        <label className="block mb-1">Service Document Name</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
           required
         />
       </div>
+
       <div>
-        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-          Operational Scope Context
-        </label>
+        <label className="block mb-1">Description Guide</label>
         <textarea
           rows={2}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue resize-none"
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText resize-none"
         />
       </div>
-      <div>
-        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-          Prerequisite Documents (One line per item)
-        </label>
-        <textarea
-          rows={4}
-          value={reqs}
-          onChange={(e) => setReqs(e.target.value)}
-          placeholder="e.g., Valid Government Issued ID"
-          className="w-full text-xs font-mono px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue leading-relaxed"
-          required
-        />
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Pipeline Processing Duration
-          </label>
+          <label className="block mb-1">Processing Duration Metric</label>
           <input
             type="text"
-            value={processingTime}
+            value={processing_time}
             onChange={(e) => setProcessingTime(e.target.value)}
-            placeholder="5 - 10 Minutes"
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            placeholder="e.g., 10 Minutes"
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
             required
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Assessed Statutory Fees
-          </label>
+          <label className="block mb-1">Standard Fees (₱)</label>
           <input
             type="text"
             value={fees}
             onChange={(e) => setFees(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
             required
           />
         </div>
       </div>
-      <div className="flex justify-end gap-3 pt-3 border-t">
+
+      <div>
+        <label className="block mb-1">
+          Prerequisite Requirements (Comma Separated)
+        </label>
+        <input
+          type="text"
+          value={requirementsInput}
+          onChange={(e) => setRequirementsInput(e.target.value)}
+          placeholder="e.g., Cedula, Valid ID, Proof of Residency"
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
+        />
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4 border-t">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50 rounded-lg border"
+          className="px-4 py-2 border rounded-xl text-slate-500 cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-xs font-medium text-white bg-gov-blue hover:bg-gov-navy rounded-lg shadow-sm"
+          className="px-4 py-2 bg-gov-blue text-white rounded-xl font-bold cursor-pointer"
         >
-          Deploy Service Node
+          Save Service
         </button>
       </div>
     </form>

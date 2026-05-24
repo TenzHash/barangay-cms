@@ -14,8 +14,8 @@ export const OfficialForm: React.FC<OfficialFormProps> = ({
 }) => {
   const [name, setName] = useState(official?.name || "");
   const [position, setPosition] = useState(official?.position || "");
-  const [termStart, setTermStart] = useState(official?.termStart || "2023");
-  const [termEnd, setTermEnd] = useState(official?.termEnd || "2026");
+  const [term_start, setTermStart] = useState(official?.term_start || "2023");
+  const [term_end, setTermEnd] = useState(official?.term_end || "2026");
   const [status, setStatus] = useState<Official["status"]>(
     official?.status || "Active",
   );
@@ -23,96 +23,86 @@ export const OfficialForm: React.FC<OfficialFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !position.trim()) return;
-    onSave({ name, position, termStart, termEnd, status });
+    onSave({ name, position, term_start, term_end, status });
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5"
+      className="bg-white rounded-2xl border p-6 space-y-4 max-w-xl text-xs font-semibold text-slate-500"
     >
-      <h3 className="text-sm font-bold uppercase tracking-wider text-gov-navy border-b pb-3">
-        {official
-          ? "Modify Official Records Node"
-          : "Enlist Appointed Civil Leader"}
+      <h3 className="text-sm font-bold text-gov-darkText">
+        Configure Council Registry Node
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Legal Name
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Portfolio Assignment
-          </label>
-          <input
-            type="text"
-            value={position}
-            onChange={(e) => setPosition(e.target.value)}
-            placeholder="e.g., Barangay Kagawad"
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
-            required
-          />
-        </div>
+
+      <div>
+        <label className="block mb-1">Official Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
+          required
+        />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+      <div>
+        <label className="block mb-1">Position Assignment</label>
+        <input
+          type="text"
+          value={position}
+          onChange={(e) => setPosition(e.target.value)}
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
+          required
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Term Start Year
-          </label>
+          <label className="block mb-1">Term Start Year</label>
           <input
             type="text"
-            value={termStart}
+            value={term_start}
             onChange={(e) => setTermStart(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
             required
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Term End Year
-          </label>
+          <label className="block mb-1">Term End Year</label>
           <input
             type="text"
-            value={termEnd}
+            value={term_end}
             onChange={(e) => setTermEnd(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
             required
           />
         </div>
-        <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Duty Framework
-          </label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value as Official["status"])}
-            className="w-full text-xs px-3.5 py-2.5 border bg-white rounded-lg focus:outline-none focus:border-gov-blue"
-          >
-            <option value="Active">Active Duty</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
       </div>
-      <div className="flex justify-end gap-3 pt-3 border-t">
+
+      <div>
+        <label className="block mb-1">Status State</label>
+        <select
+          value={status}
+          onChange={(e) => setStatus(e.target.value as any)}
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none text-gov-darkText"
+        >
+          <option value="Active">Active Duty</option>
+          <option value="Inactive">Inactive/Term Lapsed</option>
+        </select>
+      </div>
+
+      <div className="flex justify-end gap-3 pt-4 border-t">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50 rounded-lg border"
+          className="px-4 py-2 border rounded-xl text-slate-500 cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-xs font-medium text-white bg-gov-blue hover:bg-gov-navy rounded-lg shadow-sm"
+          className="px-4 py-2 bg-gov-blue text-white rounded-xl font-bold cursor-pointer"
         >
           Save Official
         </button>

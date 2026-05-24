@@ -14,8 +14,8 @@ export const EventForm: React.FC<EventFormProps> = ({
 }) => {
   const [title, setTitle] = useState(event?.title || "");
   const [description, setDescription] = useState(event?.description || "");
-  const [date, setDate] = useState(event?.date || "");
-  const [time, setTime] = useState(event?.time || "");
+  const [event_date, setEventDate] = useState(event?.event_date || "");
+  const [event_time, setEventTime] = useState(event?.event_time || "");
   const [venue, setVenue] = useState(event?.venue || "");
   const [status, setStatus] = useState<Event["status"]>(
     event?.status || "Upcoming",
@@ -23,88 +23,81 @@ export const EventForm: React.FC<EventFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !date || !venue.trim()) return;
-    onSave({ title, description, date, time, venue, status });
+    if (!title.trim()) return;
+    onSave({ title, description, event_date, event_time, venue, status });
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-5"
+      className="bg-white rounded-2xl border border-slate-200/80 p-6 space-y-4 max-w-2xl text-xs font-semibold text-slate-500"
     >
-      <h3 className="text-sm font-bold uppercase tracking-wider text-gov-navy border-b pb-3">
-        {event ? "Modify Calendar Schema" : "Schedule Community Event Element"}
+      <h3 className="text-sm font-bold text-gov-darkText mb-2">
+        Configure Event Node
       </h3>
+
       <div>
-        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-          Event Title
-        </label>
+        <label className="block mb-1">Event Title</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:bg-white text-gov-darkText"
           required
         />
       </div>
+
       <div>
-        <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-          Scope Description
-        </label>
+        <label className="block mb-1">Description</label>
         <textarea
           rows={3}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue resize-none"
+          className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:bg-white text-gov-darkText resize-none"
         />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Target Date
-          </label>
+          <label className="block mb-1">Event Date</label>
           <input
             type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            value={event_date}
+            onChange={(e) => setEventDate(e.target.value)}
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:bg-white text-gov-darkText"
             required
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Time Frame
-          </label>
+          <label className="block mb-1">Event Time</label>
           <input
             type="text"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            placeholder="09:00 AM - 12:00 PM"
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            value={event_time}
+            onChange={(e) => setEventTime(e.target.value)}
+            placeholder="e.g., 8:00 AM"
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:bg-white text-gov-darkText"
+            required
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Assigned Venue Location
-          </label>
+          <label className="block mb-1">Venue</label>
           <input
             type="text"
             value={venue}
             onChange={(e) => setVenue(e.target.value)}
-            className="w-full text-xs px-3.5 py-2.5 border rounded-lg focus:outline-none focus:border-gov-blue"
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:bg-white text-gov-darkText"
             required
           />
         </div>
         <div>
-          <label className="block text-xs font-semibold text-slate-600 uppercase mb-1.5">
-            Lifecycle Status
-          </label>
+          <label className="block mb-1">Lifecycle Status</label>
           <select
             value={status}
-            onChange={(e) => setStatus(e.target.value as Event["status"])}
-            className="w-full text-xs px-3.5 py-2.5 border bg-white rounded-lg focus:outline-none focus:border-gov-blue"
+            onChange={(e) => setStatus(e.target.value as any)}
+            className="w-full px-4 py-2.5 bg-slate-50 border rounded-xl focus:outline-none focus:bg-white text-gov-darkText"
           >
             <option value="Upcoming">Upcoming</option>
             <option value="Ongoing">Ongoing</option>
@@ -113,19 +106,20 @@ export const EventForm: React.FC<EventFormProps> = ({
           </select>
         </div>
       </div>
-      <div className="flex justify-end items-center gap-3 pt-3 border-t">
+
+      <div className="flex justify-end gap-3 pt-4 border-t">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-xs font-medium text-slate-500 hover:bg-slate-50 rounded-lg border"
+          className="px-4 py-2 border rounded-xl text-slate-500 cursor-pointer"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 text-xs font-medium text-white bg-gov-blue hover:bg-gov-navy rounded-lg shadow-sm"
+          className="px-4 py-2 bg-gov-blue text-white rounded-xl font-bold cursor-pointer"
         >
-          Commit Event
+          Save Event
         </button>
       </div>
     </form>

@@ -97,7 +97,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     {ann.title}
                   </h4>
                   <p className="text-[11px] text-slate-400">
-                    {ann.datePublished} — {ann.priority} Priority
+                    {ann.date_published} — {ann.priority} Priority
                   </p>
                 </div>
                 <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
