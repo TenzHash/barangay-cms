@@ -249,10 +249,10 @@ export default function App() {
         return weightA - weightB;
       }
 
-      return (
-        new Date(a.created_at || 0).getTime() -
-        new Date(b.created_at || 0).getTime()
-      );
+      // Safe alphabetical fallback to sort equal-ranked Kagawads by name without breaking the build
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+      return nameA.localeCompare(nameB);
     });
 
   return (
