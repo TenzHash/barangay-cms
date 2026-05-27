@@ -18,13 +18,11 @@ export function DocumentRequestsManager({
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState<string>("");
 
-  // Filter incoming requests dataset safely
   const filteredRequests = items.filter((req) => {
     if (filterStatus === "All") return true;
     return req.status === filterStatus;
   });
 
-  // Database mutation dispatcher to transition states and invoke the SMS Webhook automatically
   const handleUpdateStatus = async (
     id: string,
     nextStatus: RequestStatus,
@@ -45,13 +43,12 @@ export function DocumentRequestsManager({
 
       if (error) throw error;
 
-      // Reset local modal toggles and refresh the core context stream
       setRejectingId(null);
       setRejectionReason("");
       await onRefresh();
     } catch (err) {
       console.error("Failed to mutate record transaction status:", err);
-      alert("Error updating transaction state. Please check network logs.");
+      alert("Error updating transaction state.");
     } finally {
       setProcessingId(null);
     }
@@ -60,36 +57,36 @@ export function DocumentRequestsManager({
   const getStatusBadgeStyle = (status: RequestStatus) => {
     switch (status) {
       case "Pending":
-        return "bg-amber-500/10 border-amber-500/20 text-amber-400";
+        return "bg-amber-500/10 border-amber-500/30 text-amber-400";
       case "Approved":
-        return "bg-blue-500/10 border-blue-500/20 text-blue-400";
+        return "bg-blue-500/10 border-blue-500/30 text-blue-400";
       case "Ready for Pickup":
-        return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+        return "bg-emerald-500/10 border-emerald-500/30 text-emerald-400";
       case "Claimed":
-        return "bg-slate-500/10 border-slate-500/20 text-slate-400";
+        return "bg-slate-700/20 border-slate-700/30 text-slate-400";
       case "Rejected":
-        return "bg-rose-500/10 border-rose-500/20 text-rose-400";
+        return "bg-rose-500/10 border-rose-500/30 text-rose-400";
       default:
-        return "bg-slate-500/10 border-slate-500/20 text-slate-400";
+        return "bg-slate-700/20 border-slate-700/30 text-slate-400";
     }
   };
 
   return (
-    <div className="space-y-6 w-full text-xs">
+    <div className="space-y-6 w-full text-xs max-w-7xl mx-auto">
       {/* HEADER CONTROLS BAR */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
-          <h3 className="text-sm font-black uppercase tracking-wider text-white">
+          <h3 className="text-sm font-black uppercase tracking-wider text-slate-900">
             Document Request Ledger
           </h3>
-          <p className="text-slate-400 text-[11px] font-normal mt-0.5">
+          <p className="text-slate-500 text-[11px] font-medium mt-0.5">
             Review, approve, and track certifications requests submitted by
             citizens.
           </p>
         </div>
 
         {/* STATUS QUICK FILTERS */}
-        <div className="flex flex-wrap gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 w-max">
+        <div className="flex flex-wrap gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 shadow-md w-max">
           {(
             [
               "All",
@@ -103,10 +100,10 @@ export function DocumentRequestsManager({
             <button
               key={status}
               onClick={() => setFilterStatus(status)}
-              className={`px-3 py-1.5 rounded-lg font-bold tracking-wide transition-all cursor-pointer border-none outline-none ${
+              className={`px-3 py-1.5 rounded-lg font-bold tracking-wide transition-all cursor-pointer border-none outline-none text-[11px] ${
                 filterStatus === status
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800"
               }`}
             >
               {status}
@@ -115,9 +112,9 @@ export function DocumentRequestsManager({
         </div>
       </div>
 
-      {/* REQUESTS DATA TABLE GRID */}
+      {/* REQUESTS DATA CARDS */}
       {filteredRequests.length === 0 ? (
-        <div className="bg-slate-950/20 border border-slate-800/60 rounded-2xl p-16 text-center text-slate-500 font-semibold font-mono">
+        <div className="bg-white border border-slate-200 rounded-2xl p-16 text-center text-slate-400 font-bold tracking-wide shadow-2xs">
           No document requests matching the active filter parameters.
         </div>
       ) : (
@@ -125,61 +122,61 @@ export function DocumentRequestsManager({
           {filteredRequests.map((req) => (
             <div
               key={req.id}
-              className="bg-slate-950/40 border border-slate-800 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-slate-700/60 transition-colors min-w-0"
+              className="bg-slate-900 border border-slate-800 shadow-lg rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-slate-700/60 transition-all min-w-0"
             >
-              {/* LEFT BLOCK: RESIDENT META */}
-              <div className="space-y-2 min-w-0 flex-1">
+              {/* LEFT BLOCK: RESIDENT INFO */}
+              <div className="space-y-3 flex-1 min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h4 className="text-sm font-black text-white truncate">
+                  <h4 className="text-sm font-black text-slate-100 tracking-tight truncate">
                     {req.resident_last_name}, {req.resident_first_name}
                   </h4>
                   <span
-                    className={`text-[9px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded border ${getStatusBadgeStyle(req.status)}`}
+                    className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded border font-mono ${getStatusBadgeStyle(req.status)}`}
                   >
                     {req.status}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1.5 text-[11px] font-medium text-slate-400">
-                  <div>
-                    Document:{" "}
-                    <span className="text-slate-200 font-bold">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 gap-y-1.5 text-[11px] font-semibold text-slate-400">
+                  <div className="flex gap-1.5 truncate">
+                    <span className="text-slate-500">Document:</span>
+                    <span className="text-slate-200 font-bold truncate">
                       {req.barangay_services?.name || "Unknown Document"}
                     </span>
                   </div>
-                  <div>
-                    Mobile Contact:{" "}
+                  <div className="flex gap-1.5">
+                    <span className="text-slate-500">Contact:</span>
                     <span className="text-slate-200 font-mono font-bold">
                       {req.contact_number}
                     </span>
                   </div>
-                  <div>
-                    Submitted:{" "}
-                    <span className="text-slate-400 font-mono">
+                  <div className="flex gap-1.5">
+                    <span className="text-slate-500">Submitted:</span>
+                    <span className="text-slate-300 font-mono">
                       {new Date(req.created_at).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-slate-500 bg-slate-900/40 border border-slate-800/40 p-2.5 rounded-xl break-words">
-                  <span className="font-bold text-slate-400 uppercase text-[9px] block mb-0.5">
-                    Purpose of Request:
+                <div className="text-[11px] text-slate-300 bg-slate-950/60 border border-slate-800/80 p-3 rounded-xl leading-relaxed break-words font-medium">
+                  <span className="font-bold text-slate-500 uppercase text-[9px] block mb-1 tracking-wider">
+                    Purpose of Request
                   </span>
                   {req.purpose}
                 </div>
 
                 {req.status === "Rejected" && req.rejection_reason && (
-                  <div className="text-[11px] text-rose-400 bg-rose-950/10 border border-rose-900/20 p-2.5 rounded-xl break-words">
-                    <span className="font-bold uppercase text-[9px] block mb-0.5">
-                      Reason for Denial:
+                  <div className="text-[11px] text-rose-400 bg-rose-950/20 border border-rose-900/30 p-3 rounded-xl break-words">
+                    <span className="font-bold uppercase text-[9px] block mb-1 tracking-wider">
+                      Reason for Denial
                     </span>
                     {req.rejection_reason}
                   </div>
                 )}
               </div>
 
-              {/* RIGHT BLOCK: ADMINISTRATIVE ACTIONS CONTROL SYSTEM */}
-              <div className="flex flex-wrap items-center gap-2 md:self-center shrink-0">
+              {/* RIGHT BLOCK: ACTION CONTROLS */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0 md:self-center">
                 {req.requirements_url && (
                   <a
                     href={req.requirements_url}
@@ -187,11 +184,10 @@ export function DocumentRequestsManager({
                     rel="noreferrer"
                     className="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-all text-center no-underline border border-slate-700"
                   >
-                    📂 View Requirements
+                    📂 Requirements
                   </a>
                 )}
 
-                {/* CONTEXT ACTIONS SWITCH MAP BASED ON ACTIVE LIFECYCLE STATE */}
                 {req.status === "Pending" && rejectingId !== req.id && (
                   <>
                     <button
@@ -204,7 +200,7 @@ export function DocumentRequestsManager({
                     <button
                       onClick={() => setRejectingId(req.id)}
                       disabled={processingId !== null}
-                      className="px-3 py-2 bg-slate-800 hover:bg-rose-950/40 hover:text-rose-400 text-slate-400 font-bold rounded-xl transition-all border border-slate-700 hover:border-rose-900/30 outline-none cursor-pointer disabled:opacity-40"
+                      className="px-3 py-2 bg-slate-800 hover:bg-rose-950/30 hover:text-rose-400 text-slate-400 font-bold rounded-xl transition-all border border-slate-700 hover:border-rose-900/40 outline-none cursor-pointer disabled:opacity-40"
                     >
                       Deny
                     </button>
@@ -217,7 +213,7 @@ export function DocumentRequestsManager({
                       handleUpdateStatus(req.id, "Ready for Pickup")
                     }
                     disabled={processingId !== null}
-                    className="px-3 py-2 bg-amber-500 text-slate-950 font-black uppercase tracking-wider rounded-xl transition-all border-none outline-none cursor-pointer disabled:opacity-40"
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black uppercase tracking-wider rounded-xl transition-all border-none outline-none cursor-pointer disabled:opacity-40"
                   >
                     🔔 Mark Ready for Pickup
                   </button>
@@ -227,21 +223,21 @@ export function DocumentRequestsManager({
                   <button
                     onClick={() => handleUpdateStatus(req.id, "Claimed")}
                     disabled={processingId !== null}
-                    className="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all border-none outline-none cursor-pointer disabled:opacity-40"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all border-none outline-none cursor-pointer disabled:opacity-40"
                   >
                     ✔ Mark as Claimed
                   </button>
                 )}
 
-                {/* INLINE REJECTION FORM MODAL FRAME */}
+                {/* INLINE DENIAL INPUT BLOCK */}
                 {rejectingId === req.id && (
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-900 p-2 rounded-xl border border-slate-800 w-full sm:w-auto">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800 w-full sm:w-auto">
                     <input
                       type="text"
-                      placeholder="Enter reason for rejection..."
+                      placeholder="Reason for rejection..."
                       value={rejectionReason}
                       onChange={(e) => setRejectionReason(e.target.value)}
-                      className="px-3 py-2 bg-slate-950 text-white border border-slate-800 rounded-lg outline-none text-xs w-full sm:w-48 placeholder-slate-600 focus:border-slate-600"
+                      className="px-3 py-2 bg-slate-900 text-white border border-slate-800 rounded-lg outline-none text-xs w-full sm:w-48 placeholder-slate-600 font-medium focus:border-slate-600"
                     />
                     <div className="flex gap-1">
                       <button
