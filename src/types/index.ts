@@ -48,3 +48,24 @@ export interface BarangayService {
   processing_time: string;
   fees: string;
 }
+
+export type RequestStatus = 'Pending' | 'Approved' | 'Ready for Pickup' | 'Rejected' | 'Claimed';
+
+export interface DocumentRequest {
+  id: string;
+  service_id: string;
+  resident_first_name: string;
+  resident_last_name: string;
+  contact_number: string;
+  purpose: string;
+  status: RequestStatus;
+  requirements_url?: string;
+  rejection_reason?: string;
+  created_at: string;
+  updated_at: string;
+  // Optional join helper payload mapping
+  barangay_services?: {
+    name: string;
+    fees: string;
+  };
+}

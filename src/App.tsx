@@ -7,6 +7,7 @@ import { Services } from "./pages/Services";
 import { MobilePreview } from "./pages/MobilePreview";
 import { Settings } from "./pages/Settings";
 import { Login } from "./pages/Login";
+import { DocumentRequestsManager } from "./pages/DocumentRequestsManager";
 import { supabase } from "./lib/supabaseClient";
 
 import type {
@@ -16,6 +17,7 @@ import type {
   Official,
   BarangayService,
   UserRole,
+  DocumentRequest,
 } from "./types";
 
 // Explicit custom interface for the experimental PWA installation banner tracking to keep ESLint green
@@ -28,7 +30,7 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-// Strict mapping for allowed menu navigation keys
+// Strict mapping for allowed menu navigation keys including the new clearances module
 type TabId =
   | "dashboard"
   | "announcements"
@@ -36,7 +38,8 @@ type TabId =
   | "officials"
   | "services"
   | "preview"
-  | "settings";
+  | "settings"
+  | "clearances";
 
 interface MenuItem {
   id: TabId;
@@ -61,34 +64,44 @@ export default function App() {
   const [events, setEvents] = useState<BarangayEvent[]>([]);
   const [officials, setOfficials] = useState<Official[]>([]);
   const [services, setServices] = useState<BarangayService[]>([]);
+  const [documentRequests, setDocumentRequests] = useState<DocumentRequest[]>(
+    [],
+  );
 
   async function fetchCmsData() {
     try {
-      const [infoRes, annRes, evtRes, offRes, srvRes] = await Promise.all([
-        supabase.from("barangay_info").select("*").maybeSingle(),
-        supabase
-          .from("announcements")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("events")
-          .select("*")
-          .order("event_date", { ascending: true }),
-        supabase
-          .from("officials")
-          .select("*")
-          .order("created_at", { ascending: true }),
-        supabase
-          .from("barangay_services")
-          .select("*")
-          .order("name", { ascending: true }),
-      ]);
+      const [infoRes, annRes, evtRes, offRes, srvRes, reqsRes] =
+        await Promise.all([
+          supabase.from("barangay_info").select("*").maybeSingle(),
+          supabase
+            .from("announcements")
+            .select("*")
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("events")
+            .select("*")
+            .order("event_date", { ascending: true }),
+          supabase
+            .from("officials")
+            .select("*")
+            .order("created_at", { ascending: true }),
+          supabase
+            .from("barangay_services")
+            .select("*")
+            .order("name", { ascending: true }),
+          supabase
+            .from("document_requests")
+            .select("*, barangay_services(name, fees)")
+            .order("created_at", { ascending: false }),
+        ]);
 
       if (infoRes.data) setBarangayInfo(infoRes.data);
       if (annRes.data) setAnnouncements(annRes.data);
       if (evtRes.data) setEvents(evtRes.data);
       if (offRes.data) setOfficials(offRes.data);
       if (srvRes.data) setServices(srvRes.data);
+      if (reqsRes.data)
+        setDocumentRequests(reqsRes.data as unknown as DocumentRequest[]);
     } catch (err) {
       console.error("CMS load data failure:", err);
     }
@@ -193,6 +206,11 @@ export default function App() {
     { id: "announcements", label: "Announcements Feed" },
     { id: "events", label: "Events & Schedules" },
     {
+      id: "clearances",
+      label: "Document Requests",
+      allowedRoles: ["Admin", "Secretary"],
+    },
+    {
       id: "officials",
       label: "Officials Directory",
       allowedRoles: ["Admin", "Secretary"],
@@ -207,6 +225,35 @@ export default function App() {
   ].filter(
     (item) => !item.allowedRoles || item.allowedRoles.includes(userRole),
   ) as MenuItem[];
+
+  // 3. INCLUSIVE FUZZY-MATCHING RANKING ALGORITHM FOR LGU PROTOCOL HIERARCHY
+  const activeOfficials = officials
+    .filter((o) => !o.status || o.status === "Active")
+    .sort((a, b) => {
+      const getPositionWeight = (positionStr: string): number => {
+        const title = positionStr ? positionStr.toLowerCase() : "";
+
+        if (title.includes("punong") || title.includes("captain")) return 1;
+        if (title.includes("secretary")) return 2;
+        if (title.includes("treasurer")) return 3;
+        if (title.includes("kagawad")) return 4;
+        if (title.includes("sk") || title.includes("chairperson")) return 5;
+
+        return 99;
+      };
+
+      const weightA = getPositionWeight(a.position);
+      const weightB = getPositionWeight(b.position);
+
+      if (weightA !== weightB) {
+        return weightA - weightB;
+      }
+
+      return (
+        new Date(a.created_at || 0).getTime() -
+        new Date(b.created_at || 0).getTime()
+      );
+    });
 
   return (
     <div className="min-h-screen w-full bg-slate-50 flex flex-col relative select-none antialiased">
@@ -293,7 +340,7 @@ export default function App() {
         </div>
       )}
 
-      {/* COMPONENT DESK GRID SURFACE (Hides content area completely when the mobile menu is open to prevent sub-page element bleed) */}
+      {/* COMPONENT DESK GRID SURFACE */}
       <main
         className={`flex-1 p-4 space-y-5 min-h-0 z-10 w-full ${mobileMenuOpen ? "hidden" : "block"}`}
       >
@@ -305,7 +352,7 @@ export default function App() {
                   info={activeInfo}
                   announcements={announcements}
                   events={events}
-                  officials={officials}
+                  officials={activeOfficials}
                   services={services}
                   setActiveTab={setCurrentTab as (tab: string) => void}
                 />
@@ -316,8 +363,17 @@ export default function App() {
               );
             case "events":
               return <Events items={events} onRefresh={fetchCmsData} />;
+            case "clearances":
+              return (
+                <DocumentRequestsManager
+                  items={documentRequests}
+                  onRefresh={fetchCmsData}
+                />
+              );
             case "officials":
-              return <Officials items={officials} onRefresh={fetchCmsData} />;
+              return (
+                <Officials items={activeOfficials} onRefresh={fetchCmsData} />
+              );
             case "services":
               return <Services items={services} onRefresh={fetchCmsData} />;
             case "preview":
@@ -326,7 +382,7 @@ export default function App() {
                   info={activeInfo}
                   announcements={announcements}
                   events={events}
-                  officials={officials}
+                  officials={activeOfficials}
                   services={services}
                 />
               );
